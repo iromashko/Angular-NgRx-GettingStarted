@@ -1,6 +1,6 @@
 import { createAction, createReducer, on } from '@ngrx/store';
 
-export const authReducer = createReducer(
+export const userReducer = createReducer(
   {
     maskUserName: false,
   },
