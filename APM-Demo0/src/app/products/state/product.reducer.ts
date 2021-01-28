@@ -1,7 +1,12 @@
-import { createReducer, on, createAction } from '@ngrx/store';
+import {
+  createReducer,
+  on,
+  createFeatureSelector,
+  createSelector,
+} from '@ngrx/store';
 import { Product } from '../product';
 import * as AppState from '../../../app/state/app.state';
-
+import * as ProductActions from './product.actions';
 export interface State extends AppState.State {
   products: ProductState;
 }
@@ -12,16 +17,68 @@ export interface ProductState {
   products: Product[];
 }
 
+const initialState: ProductState = {
+  showProductCode: true,
+  currentProduct: null,
+  products: [],
+};
+
+const getProductFeatureState = createFeatureSelector<ProductState>('products');
+
+export const showProductCodeSelector = createSelector(
+  getProductFeatureState,
+  (state) => state.showProductCode
+);
+export const currentProductSelector = createSelector(
+  getProductFeatureState,
+  (state) => state.currentProduct
+);
+export const productsSelector = createSelector(
+  getProductFeatureState,
+  (state) => state.products
+);
+
 export const productReducer = createReducer<ProductState>(
-  {
-    showProductCode: true,
-  } as ProductState,
+  initialState,
   on(
-    createAction('[Product] Toggle Product Code'),
+    ProductActions.toggleProductCode,
     (state): ProductState => {
       return {
         ...state,
         showProductCode: !state.showProductCode,
+      };
+    }
+  ),
+  on(
+    ProductActions.setCurrentProduct,
+    (state, action): ProductState => {
+      return {
+        ...state,
+        currentProduct: action.product,
+      };
+    }
+  ),
+  on(
+    ProductActions.clearCurrentProduct,
+    (state): ProductState => {
+      return {
+        ...state,
+        currentProduct: null,
+      };
+    }
+  ),
+  on(
+    ProductActions.initializeCurrentProduct,
+    (state): ProductState => {
+      return {
+        ...state,
+        currentProduct: {
+          id: 0,
+          productName: '',
+          productCode: 'New',
+          description: '',
+          starRating: 0,
+        },
       };
     }
   )
