@@ -6,9 +6,9 @@ import { ProductService } from '../product.service';
 import { GenericValidator } from '../../shared/generic-validator';
 import { NumberValidators } from '../../shared/number.validator';
 
-import * as ProductActions from '../state/product.actions';
+import * as ProductActions from '../state/actions/product-page.actions';
 import { Store } from '@ngrx/store';
-import { getCurrentProductSelector, State } from '../state/product.reducer';
+import { getCurrentProductSelector, State } from '../state';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
