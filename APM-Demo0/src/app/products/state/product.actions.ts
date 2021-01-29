@@ -15,3 +15,17 @@ export const clearCurrentProduct = createAction(
 export const initializeCurrentProduct = createAction(
   '[Product] Initialize Current Product'
 );
+
+export const loadProductsAction = createAction(
+  '[Product] Load Product',
+);
+
+export const loadProductsSuccessAction = createAction(
+  '[Product] Load Product Success',
+  props<{ products: Product[] }>()
+);
+
+export const loadProductsFailureAction = createAction(
+  '[Product] Load Product Failure',
+  props<{ error: string }>()
+);
