@@ -1,10 +1,10 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 
 import { Product } from '../product';
-import { ProductService } from '../product.service';
 import {
-  currentProductSelector,
+  getCurrentProductSelector,
+  getErrorSelector,
   productsSelector,
   showProductCodeSelector,
   State,
@@ -19,34 +19,26 @@ import { Observable } from 'rxjs';
 })
 export class ProductListComponent implements OnInit {
   pageTitle = 'Products';
-  errorMessage: string;
-
-  displayCode: boolean;
 
   products$: Observable<Product[]>;
 
   // Used to highlight the selected product in the list
-  selectedProduct: Product | null;
+  selectedProduct$: Observable<Product>;
+  displayCode$: Observable<boolean>;
+  errorMessage$: Observable<string>;
 
-  constructor(
-    private productService: ProductService,
-    private store: Store<State>
-  ) {}
+  constructor(private store: Store<State>) {}
 
   ngOnInit(): void {
-    //TODO: Unsubscribe
-    this.store
-      .select(currentProductSelector)
-      .subscribe((currentProduct) => (this.selectedProduct = currentProduct));
+    this.selectedProduct$ = this.store.select(getCurrentProductSelector);
 
     this.products$ = this.store.select(productsSelector);
 
+    this.errorMessage$ = this.store.select(getErrorSelector);
+
     this.store.dispatch(ProductActions.loadProductsAction());
 
-    //TODO: Unsubscribe
-    this.store
-      .select(showProductCodeSelector)
-      .subscribe((showProductCode) => (this.displayCode = showProductCode));
+    this.displayCode$ = this.store.select(showProductCodeSelector);
   }
 
   checkChanged(): void {
@@ -58,6 +50,8 @@ export class ProductListComponent implements OnInit {
   }
 
   productSelected(product: Product): void {
-    this.store.dispatch(ProductActions.setCurrentProduct({ product }));
+    this.store.dispatch(
+      ProductActions.setCurrentProduct({ currentProductId: product.id })
+    );
   }
 }

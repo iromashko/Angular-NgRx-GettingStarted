@@ -13,14 +13,16 @@ export interface State extends AppState.State {
 
 export interface ProductState {
   showProductCode: boolean;
-  currentProduct: Product;
+  currentProductId: number | null;
   products: Product[];
+  error: string;
 }
 
 const initialState: ProductState = {
   showProductCode: true,
-  currentProduct: null,
+  currentProductId: null,
   products: [],
+  error: '',
 };
 
 const getProductFeatureState = createFeatureSelector<ProductState>('products');
@@ -29,13 +31,38 @@ export const showProductCodeSelector = createSelector(
   getProductFeatureState,
   (state) => state.showProductCode
 );
-export const currentProductSelector = createSelector(
+export const getCurrentProductIdSelector = createSelector(
   getProductFeatureState,
-  (state) => state.currentProduct
+  (state) => state.currentProductId
 );
 export const productsSelector = createSelector(
   getProductFeatureState,
   (state) => state.products
+);
+
+export const getCurrentProductSelector = createSelector(
+  getProductFeatureState,
+  getCurrentProductIdSelector,
+  (state, currentProductId) => {
+    if (currentProductId === 0) {
+      return {
+        id: 0,
+        productName: '',
+        productCode: 'New',
+        description: '',
+        starRating: 0,
+      };
+    } else {
+      return currentProductId
+        ? state.products.find((p) => p.id === currentProductId)
+        : null;
+    }
+  }
+);
+
+export const getErrorSelector = createSelector(
+  getProductFeatureState,
+  (state) => state.error
 );
 
 export const productReducer = createReducer<ProductState>(
@@ -54,7 +81,7 @@ export const productReducer = createReducer<ProductState>(
     (state, action): ProductState => {
       return {
         ...state,
-        currentProduct: action.product,
+        currentProductId: action.currentProductId,
       };
     }
   ),
@@ -63,7 +90,7 @@ export const productReducer = createReducer<ProductState>(
     (state): ProductState => {
       return {
         ...state,
-        currentProduct: null,
+        currentProductId: null,
       };
     }
   ),
@@ -72,13 +99,7 @@ export const productReducer = createReducer<ProductState>(
     (state): ProductState => {
       return {
         ...state,
-        currentProduct: {
-          id: 0,
-          productName: '',
-          productCode: 'New',
-          description: '',
-          starRating: 0,
-        },
+        currentProductId: 0,
       };
     }
   ),
@@ -88,6 +109,17 @@ export const productReducer = createReducer<ProductState>(
       return {
         ...state,
         products: action.products,
+        error: '',
+      };
+    }
+  ),
+  on(
+    ProductActions.loadProductsFailureAction,
+    (state, action): ProductState => {
+      return {
+        ...state,
+        products: [],
+        error: action.error,
       };
     }
   )

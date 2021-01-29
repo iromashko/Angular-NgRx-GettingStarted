@@ -8,7 +8,9 @@ import { NumberValidators } from '../../shared/number.validator';
 
 import * as ProductActions from '../state/product.actions';
 import { Store } from '@ngrx/store';
-import { currentProductSelector, State } from '../state/product.reducer';
+import { getCurrentProductSelector, State } from '../state/product.reducer';
+import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'pm-product-edit',
@@ -19,12 +21,11 @@ export class ProductEditComponent implements OnInit {
   errorMessage = '';
   productForm: FormGroup;
 
-  product: Product | null;
-
   // Use with the generic validation message class
   displayMessage: { [key: string]: string } = {};
   private validationMessages: { [key: string]: { [key: string]: string } };
   private genericValidator: GenericValidator;
+  product$: Observable<Product | null>;
 
   constructor(
     private fb: FormBuilder,
@@ -70,9 +71,9 @@ export class ProductEditComponent implements OnInit {
 
     //TODO: Unsubscribe
     // Watch for changes to the currently selected product
-    this.store
-      .select(currentProductSelector)
-      .subscribe((currentProduct) => this.displayProduct(currentProduct));
+    this.product$ = this.store
+      .select(getCurrentProductSelector)
+      .pipe(tap((currentProduct) => this.displayProduct(currentProduct)));
 
     // Watch for value changes for validation
     this.productForm.valueChanges.subscribe(
@@ -92,9 +93,6 @@ export class ProductEditComponent implements OnInit {
   }
 
   displayProduct(product: Product | null): void {
-    // Set the local product property
-    this.product = product;
-
     if (product) {
       // Reset the form back to pristine
       this.productForm.reset();
@@ -147,18 +145,12 @@ export class ProductEditComponent implements OnInit {
           this.productService.createProduct(product).subscribe({
             next: (p) =>
               this.store.dispatch(
-                ProductActions.setCurrentProduct({ product: p })
+                ProductActions.setCurrentProduct({ currentProductId: p.id })
               ),
             error: (err) => (this.errorMessage = err),
           });
         } else {
-          this.productService.updateProduct(product).subscribe({
-            next: (p) =>
-              this.store.dispatch(
-                ProductActions.setCurrentProduct({ product: p })
-              ),
-            error: (err) => (this.errorMessage = err),
-          });
+          this.store.dispatch(ProductActions.updateProductAction({ product }));
         }
       }
     }
